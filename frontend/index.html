@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TxnTrack — Transaction System</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #0d0d0f;
+            --surface: #16161a;
+            --surface2: #1e1e24;
+            --border: #2a2a35;
+            --accent: #7c6fef;
+            --accent-glow: rgba(124, 111, 239, 0.15);
+            --green: #4ade80;
+            --red: #f87171;
+            --yellow: #fbbf24;
+            --text: #e8e8f0;
+            --muted: #6b6b80;
+            --mono: 'JetBrains Mono', 'Fira Code', monospace;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', -apple-system, sans-serif;
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        /* Header */
+        .header {
+            max-width: 860px;
+            margin: 0 auto 48px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .logo {
+            width: 40px; height: 40px;
+            background: var(--accent);
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px; font-weight: 800; color: white;
+            box-shadow: 0 0 20px var(--accent-glow);
+        }
+
+        .header-text h1 {
+            font-size: 20px; font-weight: 700; letter-spacing: -0.3px;
+        }
+
+        .header-text p {
+            font-size: 13px; color: var(--muted); margin-top: 2px;
+        }
+
+        .status-dot {
+            margin-left: auto;
+            display: flex; align-items: center; gap: 8px;
+            font-size: 12px; color: var(--muted);
+        }
+
+        .dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: var(--green);
+            box-shadow: 0 0 8px var(--green);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        /* Layout */
+        .container { max-width: 860px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+
+        /* Cards */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 18px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; gap: 12px;
+        }
+
+        .method-badge {
+            font-family: var(--mono);
+            font-size: 11px; font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 5px;
+            letter-spacing: 0.5px;
+        }
+
+        .post { background: rgba(251,191,36,0.15); color: var(--yellow); }
+        .get  { background: rgba(74,222,128,0.15); color: var(--green); }
+
+        .endpoint {
+            font-family: var(--mono);
+            font-size: 13px; color: var(--text);
+        }
+
+        .card-desc {
+            margin-left: auto;
+            font-size: 12px; color: var(--muted);
+        }
+
+        .card-body { padding: 24px; }
+
+        /* Form inputs */
+        .fields { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+
+        .field { flex: 1; min-width: 160px; }
+
+        label {
+            display: block;
+            font-size: 11px; font-weight: 600;
+            color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px;
+            margin-bottom: 6px;
+        }
+
+        input {
+            width: 100%;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px 14px;
+            color: var(--text);
+            font-size: 14px;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+
+        input::placeholder { color: var(--muted); }
+
+        /* Buttons */
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            font-size: 13px; font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex; align-items: center; gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+            box-shadow: 0 0 20px var(--accent-glow);
+        }
+
+        .btn-primary:hover { background: #9181f4; transform: translateY(-1px); }
+        .btn-primary:active { transform: translateY(0); }
+
+        .btn-ghost {
+            background: var(--surface2);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+        /* Response box */
+        .response-box {
+            margin-top: 16px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .response-header {
+            padding: 8px 14px;
+            border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; gap: 8px;
+            font-size: 11px; color: var(--muted);
+        }
+
+        .status-pill {
+            font-family: var(--mono);
+            font-size: 11px; font-weight: 700;
+            padding: 2px 8px; border-radius: 4px;
+        }
+
+        .s-2xx { background: rgba(74,222,128,0.15); color: var(--green); }
+        .s-4xx { background: rgba(248,113,113,0.15); color: var(--red); }
+        .s-5xx { background: rgba(248,113,113,0.15); color: var(--red); }
+
+        .response-body {
+            padding: 14px;
+            font-family: var(--mono);
+            font-size: 13px;
+            line-height: 1.6;
+            color: #a8b4d8;
+            white-space: pre-wrap;
+            word-break: break-all;
+            max-height: 280px;
+            overflow-y: auto;
+        }
+
+        .response-body .key { color: #7c9ee8; }
+        .response-body .string { color: #98d99e; }
+        .response-body .number { color: #f9c784; }
+        .response-body .boolean { color: #f87171; }
+        .placeholder { color: var(--muted); font-style: italic; }
+
+        /* Ranking table */
+        .rank-table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+
+        .rank-table th {
+            text-align: left; padding: 10px 14px;
+            font-size: 11px; font-weight: 600;
+            color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .rank-table td {
+            padding: 12px 14px;
+            font-size: 13px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .rank-table tr:last-child td { border-bottom: none; }
+        .rank-table tr:hover td { background: var(--surface2); }
+
+        .rank-num {
+            font-family: var(--mono);
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .rank-1 { color: #fbbf24; }
+        .rank-2 { color: #94a3b8; }
+        .rank-3 { color: #cd7f32; }
+
+        .score-bar-wrap { display: flex; align-items: center; gap: 10px; }
+        .score-bar {
+            flex: 1; height: 4px;
+            background: var(--border);
+            border-radius: 2px; overflow: hidden;
+        }
+        .score-bar-fill {
+            height: 100%;
+            background: var(--accent);
+            border-radius: 2px;
+            transition: width 0.6s ease;
+        }
+
+        .empty-state {
+            text-align: center; padding: 40px;
+            color: var(--muted); font-size: 13px;
+        }
+
+        /* Loading spinner */
+        .spinner {
+            width: 14px; height: 14px;
+            border: 2px solid rgba(255,255,255,0.2);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            display: none;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="logo">T</div>
+    <div class="header-text">
+        <h1>TxnTrack</h1>
+        <p>Transaction Tracking & Ranking System</p>
+    </div>
+    <div class="status-dot">
+        <div class="dot"></div>
+        <span>API Live</span>
+    </div>
+</div>
+
+<div class="container">
+
+    <!-- POST /transaction -->
+    <div class="card">
+        <div class="card-header">
+            <span class="method-badge post">POST</span>
+            <span class="endpoint">/transaction</span>
+            <span class="card-desc">Record a new transaction</span>
+        </div>
+        <div class="card-body">
+            <div class="fields">
+                <div class="field">
+                    <label>User ID</label>
+                    <input type="text" id="userId" placeholder="e.g. user1" />
+                </div>
+                <div class="field">
+                    <label>Amount</label>
+                    <input type="number" id="amount" placeholder="e.g. 500" min="0" />
+                </div>
+                <div class="field">
+                    <label>Transaction ID</label>
+                    <input type="text" id="transactionId" placeholder="e.g. txn-001" />
+                </div>
+            </div>
+            <button class="btn btn-primary" onclick="postTransaction()">
+                <div class="spinner" id="txn-spinner"></div>
+                Submit Transaction
+            </button>
+            <div class="response-box" id="txn-response-box" style="display:none">
+                <div class="response-header">
+                    Response &nbsp;
+                    <span class="status-pill" id="txn-status-pill"></span>
+                </div>
+                <div class="response-body" id="txn-result"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- GET /summary -->
+    <div class="card">
+        <div class="card-header">
+            <span class="method-badge get">GET</span>
+            <span class="endpoint">/summary/:userId</span>
+            <span class="card-desc">View user stats & rank</span>
+        </div>
+        <div class="card-body">
+            <div class="fields">
+                <div class="field" style="max-width: 260px">
+                    <label>User ID</label>
+                    <input type="text" id="summaryUserId" placeholder="e.g. user1" />
+                </div>
+            </div>
+            <button class="btn btn-ghost" onclick="getSummary()">
+                <div class="spinner" id="sum-spinner"></div>
+                Fetch Summary
+            </button>
+            <div class="response-box" id="sum-response-box" style="display:none">
+                <div class="response-header">
+                    Response &nbsp;
+                    <span class="status-pill" id="sum-status-pill"></span>
+                </div>
+                <div class="response-body" id="sum-result"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- GET /ranking -->
+    <div class="card">
+        <div class="card-header">
+            <span class="method-badge get">GET</span>
+            <span class="endpoint">/ranking</span>
+            <span class="card-desc">Live leaderboard</span>
+        </div>
+        <div class="card-body">
+            <button class="btn btn-ghost" onclick="getRanking()">
+                <div class="spinner" id="rank-spinner"></div>
+                Load Ranking
+            </button>
+            <div id="ranking-container"></div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    const BASE_URL = 'http://127.0.0.1:5000';
+
+    function syntaxHighlight(json) {
+        const str = JSON.stringify(json, null, 2);
+        return str.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, match => {
+            let cls = 'number';
+            if (/^"/.test(match)) cls = /:$/.test(match) ? 'key' : 'string';
+            else if (/true|false/.test(match)) cls = 'boolean';
+            return `<span class="${cls}">${match}</span>`;
+        });
+    }
+
+    function setStatus(pillId, status) {
+        const pill = document.getElementById(pillId);
+        pill.textContent = status;
+        pill.className = 'status-pill ' + (status >= 200 && status < 300 ? 's-2xx' : status >= 400 && status < 500 ? 's-4xx' : 's-5xx');
+    }
+
+    function showSpinner(id, show) {
+        document.getElementById(id).style.display = show ? 'block' : 'none';
+    }
+
+    async function postTransaction() {
+        const userId = document.getElementById('userId').value.trim();
+        const amount = parseFloat(document.getElementById('amount').value);
+        const transactionId = document.getElementById('transactionId').value.trim();
+        const box = document.getElementById('txn-response-box');
+        const result = document.getElementById('txn-result');
+
+        if (!userId || !amount || !transactionId) {
+            box.style.display = 'block';
+            setStatus('txn-status-pill', 400);
+            result.innerHTML = '<span class="string">"Please fill all fields"</span>';
+            return;
+        }
+
+        showSpinner('txn-spinner', true);
+        try {
+            const res = await fetch(`${BASE_URL}/transaction`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId, amount, transactionId })
+            });
+            const data = await res.json();
+            box.style.display = 'block';
+            setStatus('txn-status-pill', res.status);
+            result.innerHTML = syntaxHighlight(data);
+        } catch (err) {
+            box.style.display = 'block';
+            setStatus('txn-status-pill', 500);
+            result.innerHTML = `<span class="boolean">"${err.message}"</span>`;
+        } finally {
+            showSpinner('txn-spinner', false);
+        }
+    }
+
+    async function getSummary() {
+        const userId = document.getElementById('summaryUserId').value.trim();
+        const box = document.getElementById('sum-response-box');
+        const result = document.getElementById('sum-result');
+
+        if (!userId) {
+            box.style.display = 'block';
+            setStatus('sum-status-pill', 400);
+            result.innerHTML = '<span class="string">"Please enter a User ID"</span>';
+            return;
+        }
+
+        showSpinner('sum-spinner', true);
+        try {
+            const res = await fetch(`${BASE_URL}/summary/${userId}`);
+            const data = await res.json();
+            box.style.display = 'block';
+            setStatus('sum-status-pill', res.status);
+            result.innerHTML = syntaxHighlight(data);
+        } catch (err) {
+            box.style.display = 'block';
+            setStatus('sum-status-pill', 500);
+            result.innerHTML = `<span class="boolean">"${err.message}"</span>`;
+        } finally {
+            showSpinner('sum-spinner', false);
+        }
+    }
+
+    async function getRanking() {
+        const container = document.getElementById('ranking-container');
+        showSpinner('rank-spinner', true);
+        try {
+            const res = await fetch(`${BASE_URL}/ranking`);
+            const data = await res.json();
+
+            if (!data.length) {
+                container.innerHTML = '<div class="empty-state">No users yet. Submit a transaction first.</div>';
+                return;
+            }
+
+            const maxScore = data[0].score;
+
+            const rows = data.map(u => {
+                const rankClass = u.rank <= 3 ? `rank-${u.rank}` : '';
+                const pct = ((u.score / maxScore) * 100).toFixed(1);
+                return `
+                <tr>
+                    <td><span class="rank-num ${rankClass}">#${u.rank}</span></td>
+                    <td style="font-family: var(--mono)">${u.userId}</td>
+                    <td>₹${u.totalAmount.toLocaleString()}</td>
+                    <td>${u.transactionCount}</td>
+                    <td>
+                        <div class="score-bar-wrap">
+                            <span style="font-family:var(--mono);font-size:12px;color:var(--accent);min-width:50px">${u.score}</span>
+                            <div class="score-bar">
+                                <div class="score-bar-fill" style="width:${pct}%"></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>`;
+            }).join('');
+
+            container.innerHTML = `
+            <table class="rank-table" style="margin-top:16px">
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>User ID</th>
+                        <th>Total Amount</th>
+                        <th>Transactions</th>
+                        <th>Score</th>
+                    </tr>
+                </thead>
+                <tbody>${rows}</tbody>
+            </table>`;
+        } catch (err) {
+            container.innerHTML = `<div class="empty-state" style="color:var(--red)">${err.message}</div>`;
+        } finally {
+            showSpinner('rank-spinner', false);
+        }
+    }
+</script>
+</body>
+</html>
