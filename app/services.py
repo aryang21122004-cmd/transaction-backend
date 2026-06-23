@@ -84,7 +84,7 @@ def get_ranking():
 def calculate_score(user):
     total_amount = user.total_amount or 0.0
     transaction_count = user.transaction_count or 0
-    amount_score = total_amount * 0.6
-    count_score = transaction_count * 0.3
-    consistency_bonus = min(transaction_count, 10) * 1.0
+    amount_score = total_amount * 0.65
+    count_score = transaction_count * 0.25
+    consistency_bonus = min(transaction_count, 10) * 1.2
     return amount_score + count_score + consistency_bonus
