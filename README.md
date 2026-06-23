@@ -1,6 +1,6 @@
 # Transaction Tracking System
 
-Built as part of an internship assignment. A Flask backend with 3 APIs — submit transactions, view user stats, and see a live leaderboard ranked by a composite score.
+A Flask backend with 3 APIs — submit transactions, view user stats, and see a live leaderboard ranked by a composite score.
 
 ## Live Links
 - Frontend: https://velvety-kheer-6cca4f.netlify.app
