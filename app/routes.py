@@ -1,7 +1,8 @@
 from flask import Blueprint, request, jsonify
 from app.utils import validate_transaction
 from app.services import process_transaction, get_user_summary, get_ranking
-
+from app.models import User, Transaction
+from app import db
 main = Blueprint('main', __name__)
 
 @main.route('/transaction', methods=['POST'])
@@ -33,3 +34,10 @@ def user_summary(user_id):
 def ranking():
     result, status = get_ranking()
     return jsonify(result), status
+
+@main.route('/reset', methods=['DELETE'])
+def reset():
+    db.session.query(Transaction).delete()
+    db.session.query(User).delete()
+    db.session.commit()
+    return jsonify({'message': 'Database cleared'}), 200
